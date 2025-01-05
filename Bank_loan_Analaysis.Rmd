@@ -1,0 +1,130 @@
+---
+title: "Bank loan Analysis"
+author: "Chandanarchutha Namburu"
+date: "2024-11-19"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+loan<-read.csv("loan.csv",header = T)
+head(loan)
+```
+```{r}
+loan2010<-subset(loan,loan$year==2010)
+library(olsrr)
+```
+
+```{r}
+# this is the final model for the project :)
+fullModelLoan<-lm(interest_rate~emp_length_int+home_ownership+income_category+annual_inc+term+purpose+interest_payments+loan_amount+grade+dti,data=loan2010)
+stepmodLoan=ols_step_both_p(fullModelLoan,p_enter = 0.1, p_remove = 0.3, details=TRUE)
+#fullModelLoan<-lm(interest_rate~emp_length_int+home_ownership+income_category+annual_inc+term+purpose+interest_payments+loan_condition+loan_amount+grade+dti+total_pymnt+total_rec_prncp+recoveries+installment,data=loan2010)
+```
+```{r}
+summary(fullModelLoan)
+```
+
+
+```{r}
+summary(stepmodLoan$model)
+```
+
+```{r}
+stepmodLoanInter<-lm(interest_rate ~ (grade + interest_payments + term + loan_amount + purpose + dti )^2, data=loan2010)
+summary(stepmodLoanInter)
+```
+
+```{r}
+finalLoan<-stepmodLoanInter$model# final model
+library(GGally)
+#ggpairs(finalLoan)
+```
+
+```{r}
+plot(~interest_rate+emp_length_int+home_ownership+income_category+annual_inc+term+purpose+interest_payments+loan_amount+grade+dti,data=loan2010,panel=panel.smooth)
+```
+
+```{r}
+#LoanSubsets=ols_step_best_subset(fullModelLoan, details=TRUE)
+# for the output interpretation
+#ExecSubsets$metrics
+```
+
+```{r}
+library(ggplot2)
+stepmodLoan<-lm(interest_rate ~ grade + interest_payments + term + loan_condition + loan_amount + purpose + dti + emp_length_int + income_category ,data=loan2010)
+ggplot(stepmodLoan, aes(x=.fitted, y=.resid)) +geom_point() +geom_smooth()+geom_hline(yintercept = 0) 
+```
+
+```{r}
+#loanMod1<-lm(loan_amount ~ installment+I(installment^2) + term + interest_rate + total_pymnt+ loan_condition + annual_inc + income_category + purpose + total_rec_prncp + grade + interest_payments + recoveries,data=loan2010)
+#summary(loanMod1)
+```
+
+```{r}
+#loanMod2<-lm(loan_amount ~ installment+I(installment^2) + term + interest_rate + total_pymnt+I( total_pymnt^2) + loan_condition + annual_inc + income_category + purpose + total_rec_prncp + grade + interest_payments + recoveries,data=loan2010)
+#summary(loanMod2)
+```
+
+```{r}
+#loanMod3<-lm(loan_amount ~ installment+I(installment^2) + term + interest_rate + total_pymnt+I( total_pymnt^2) + loan_condition + annual_inc + income_category + purpose + total_rec_prncp+I(total_rec_prncp^2) + grade + interest_payments + recoveries,data=loan2010)
+#summary(loanMod3)
+```
+
+```{r}
+#ggplot(loanMod1, aes(x=.fitted, y=.resid)) +geom_point() +geom_smooth()+geom_hline(yintercept = 0) 
+```
+
+```{r}
+#ggplot(loanMod2, aes(x=.fitted, y=.resid)) +geom_point() +geom_smooth()+geom_hline(yintercept = 0)
+```
+
+```{r}
+#ggplot(loanMod3, aes(x=.fitted, y=.resid)) +geom_point() +geom_smooth()+geom_hline(yintercept = 0)
+```
+
+```{r}
+ggplot(stepmodLoanInter, aes(x=.fitted, y=.resid)) +geom_point() +geom_smooth()+geom_hline(yintercept = 0)
+```
+
+```{r}
+#loanMod4<-lm(loan_amount ~ installment+I(installment^2) + term + interest_rate + total_pymnt + loan_condition + annual_inc + income_category + purpose + total_rec_prncp+I(total_rec_prncp^2) + grade + interest_payments + recoveries,data=loan2010)
+#summary(loanMod4)
+```
+
+```{r}
+#ggplot(loanMod4, aes(x=.fitted,y=.resid))+geom_point()+geom_smooth()+geom_hline(yintercept = 0)
+```
+
+```{r}
+#normal QQ plot
+ggplot(loan2010, aes(sample=stepmodLoanInter$residuals)) +stat_qq() +stat_qq_line()
+```
+```{r}
+#ggplot(loan2010, aes(sample=loanMod3$residuals)) +stat_qq() +stat_qq_line()
+```
+
+```{r}
+hist(residuals(stepmodLoanInter))
+```
+
+```{r}
+ggplot(loan2010, aes(sample=fullModelLoan$residuals)) +stat_qq() +stat_qq_line()
+```
+
+```{r}
+hist(residuals(fullModelLoan))
+```
+
+```{r}
+ggplot(fullModelLoan, aes(x=.fitted, y=.resid)) +geom_point() +geom_smooth()+geom_hline(yintercept = 0)
+```
+
+
+
